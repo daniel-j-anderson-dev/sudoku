@@ -8,6 +8,7 @@ pub use crate::game::{
     menu::MenuOption,
 };
 
+/// Prompts the user for input then returns a line of input from the user
 pub fn get_input(prompt: &str) -> Result<String, std::io::Error> {
     use std::io::{stdin, stdout, BufRead, Write};
 
@@ -22,6 +23,7 @@ pub fn get_input(prompt: &str) -> Result<String, std::io::Error> {
     return Ok(input);
 }
 
+/// Prompts the user for input of a specific data-type then returns the value input by the user
 pub fn get_parsed_input<T>(prompt: &str) -> Result<T, std::io::Error>
 where
     T: std::str::FromStr,
