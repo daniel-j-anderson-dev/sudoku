@@ -17,7 +17,7 @@ impl Board {
             let mut temp = String::new();
             for row in self.values.iter() {
                 for value in row {
-                    temp.push_str(&format!("{} ", value));
+                    temp.push_str(&format!("{} ", usize::from(value)));
                 }
                 temp.push('\n');
             }
