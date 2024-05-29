@@ -10,8 +10,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     loop {
         let menu_option = get_parsed_input::<MenuOption>("> ")?;
 
-        println!();
-
         match menu_option {
             MenuOption::ShowInstructions => print!("{}", menu::OPTIONS),
             MenuOption::DisplayBoard => print!("{}", board),
@@ -23,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     continue;
                 }
 
-                let value = get_parsed_input(&format!("\nWhat is the value at '{}': ", index))?;
+                let value = get_parsed_input(&format!("What is the value at '{}': ", index))?;
 
                 if !board
                     .possible_values(index)
@@ -42,7 +40,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let index = get_parsed_input("What are the coordinates of the square: ")?;
                 let possible_values = board.possible_values(index).collect::<Vec<_>>();
 
-                print!("\nThe possible values for '{}' are: ", index);
+                print!("The possible values for '{}' are: ", index);
                 for (i, possible_value) in possible_values.iter().enumerate() {
                     print!("{}", possible_value);
                     if i < possible_values.len() - 1 {
@@ -55,7 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             MenuOption::SaveAndQuit => {
                 let path = get_input("What file would you like to write your board to: ")?;
                 board.save_to_file(path)?;
-                println!("\nBoard written successfully");
+                println!("Board written successfully");
                 break;
             }
         }

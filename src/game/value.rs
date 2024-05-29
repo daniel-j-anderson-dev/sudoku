@@ -77,7 +77,7 @@ impl std::fmt::Display for Value {
 impl std::str::FromStr for Value {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        return match s.parse::<usize>().map_err(|e| e.to_string()) {
+        return match s.parse::<usize>() {
             Ok(n) => match n {
                 0 => Ok(Self::Empty),
                 1 => Ok(Self::One),
@@ -91,7 +91,7 @@ impl std::str::FromStr for Value {
                 9 => Ok(Self::Nine),
                 _ => Err(format!("value too large: {}", n)),
             },
-            Err(e) => Err(e.into()),
+            Err(e) => Err(e.to_string()),
         };
     }
 }

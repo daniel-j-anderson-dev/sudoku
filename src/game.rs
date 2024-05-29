@@ -32,7 +32,7 @@ where
     loop {
         match get_input(prompt)?.parse() {
             Ok(parsed_input) => return Ok(parsed_input),
-            Err(parse_error) => eprintln!("\nERROR: {}", parse_error),
+            Err(parse_error) => eprintln!("\nERROR: {}\n", parse_error),
         }
     }
 }
