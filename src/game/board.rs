@@ -1,14 +1,17 @@
 use crate::game::value::Value;
 
+/// This data type represents a Sudoku [Board]. It is stored as a row major 9 by 9 array of [Value]s
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct Board {
     values: [[Value; 9]; 9],
 }
 impl Board {
+    /// Create a new board based on the data at `path`
     pub fn read_from_file(path: impl AsRef<std::path::Path>) -> Result<Self, Box<dyn std::error::Error>> {
         return Ok(std::fs::read_to_string(path)?.parse()?);
     }
 
+    /// Save the current state of the board at 'path'
     pub fn save_to_file(&self, path: impl AsRef<std::path::Path>) -> Result<(), std::io::Error> {
         let save_data = {
             let mut temp = String::new();
@@ -32,28 +35,35 @@ impl Board {
         return Ok(());
     }
 
+    /// Returns a reference to the [Value] at `index`
     pub fn get(&self, index: Index) -> &Value {
         return &self.values[index.row][index.column];
     }
-
+    
+    /// Returns a mutable reference to the [Value] at `index`
     pub fn get_mut(&mut self, index: Index) -> &mut Value {
         return &mut self.values[index.row][index.column];
     }
 
+    /// Returns an [Iterator] that yields all the elements in the same row as `index`
     pub fn row(&self, index: Index) -> impl Iterator<Item = &Value> {
         return self.values[index.row].iter();
     }
-
+    
+    /// Returns an [Iterator] that yields all the elements in the same column as `index`
     pub fn column(&self, index: Index) -> impl Iterator<Item = &Value> {
         return (0..9).map(move |row_index| &self.values[row_index][index.column]);
     }
-
+    
+    /// Returns an [Iterator] that yields all the elements in the same 3x3 box as `index`
     pub fn sub_box(&self, index: Index) -> impl Iterator<Item = &Value> {
         return SubBox::from(index)
-            .all_indexes()
-            .map(|index| self.get(index));
+        .all_indexes()
+        .map(|index| self.get(index));
     }
 
+
+    /// Returns an [Iterator] that yields all the possible [Value]s at `index`. If the [Value] at `index` is empty then there are no possible [Value]s
     pub fn possible_values(&self, index: Index) -> impl Iterator<Item = Value> {
         let is_empty = self.get(index).is_empty();
 
@@ -87,6 +97,21 @@ impl Board {
     }
 }
 impl std::fmt::Display for Board {
+    /// Display the board as instructed
+    /// ```text
+    ///   A B C D E F G H I
+    /// 1 7 2 3|     |1 5 9
+    /// 2 6    |3   2|    8
+    /// 3 8    |  1  |    2
+    ///   -----+-----+-----
+    /// 4   7  |6 5 4|  2
+    /// 5     4|2   7|3
+    /// 6   5  |9 3 1|  4
+    ///   -----+-----+-----
+    /// 7 5    |  7  |    3
+    /// 8 4    |1   3|    6
+    /// 9 9 3 2|     |7 1 4
+    /// ```
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "  A B C D E F G H I\n")?;
 
@@ -113,46 +138,22 @@ impl std::fmt::Display for Board {
         return Ok(());
     }
 }
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ParseBoardError {
-    line_number: usize,
-    message: String,
-}
-impl std::fmt::Display for ParseBoardError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        return write!(
-            f,
-            "Could not parse board\nReason: {}\nline: {}",
-            self.message, self.line_number
-        );
-    }
-}
-impl std::error::Error for ParseBoardError {}
 impl std::str::FromStr for Board {
-    type Err = ParseBoardError;
+    type Err = String;
+    /// Defines how to [str::parse] a string into a [Board]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut board = Self::default();
 
         for (row_index, line) in s.lines().enumerate() {
             if row_index >= 9 {
-                Err(ParseBoardError {
-                    line_number: row_index + 1,
-                    message: String::from("too many lines; must have 9 lines"),
-                })?;
+                Err(format!("in Board string on line {} there are too many lines; must have 9 lines", row_index + 1))?;
             }
 
             for (column_index, value) in line.split_whitespace().enumerate() {
                 if column_index >= 9 {
-                    Err(ParseBoardError {
-                        line_number: row_index + 1,
-                        message: String::from("too many values on line"),
-                    })?;
+                    Err(format!("in Board string on line {} there are too many values", row_index + 1))?;
                 }
-                let value = value.parse::<Value>().map_err(|message| ParseBoardError {
-                    line_number: row_index + 1,
-                    message,
-                })?;
+                let value = value.parse::<Value>().map_err(|e| format!("in Board string on line {} value could not be parsed: {}", row_index + 1, e))?;
                 board.values[row_index][column_index] = value;
             }
         }
@@ -161,7 +162,8 @@ impl std::str::FromStr for Board {
     }
 }
 
-/// ## Invariant
+/// This type represents an inbound index into the 9 by 9 sudoku board
+///  ## Invariant
 /// An instance of [Index]'s row_index and column_index will be between '0..=8'
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Index {
@@ -169,6 +171,7 @@ pub struct Index {
     column: usize,
 }
 impl Index {
+    /// Create a new instance of [Index] if the indexes are inbounds 
     pub const fn new(row: usize, column: usize) -> Option<Self> {
         return if row < 9 && column < 9 {
             Some(Self { row, column })
@@ -178,6 +181,8 @@ impl Index {
     }
 }
 impl std::fmt::Display for Index {
+    /// Display the [Index] as described.
+    /// example: `Index { row: 2, column: 4 }` == `"D3"`
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let row = match self.row {
             0 => '1',
@@ -210,6 +215,7 @@ impl std::fmt::Display for Index {
 }
 impl std::str::FromStr for Index {
     type Err = String;
+    /// Defines how to [str::parse] an [Index] from a string
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.chars().count() > 2 {
             Err("too many characters to identify a Square")?
@@ -251,6 +257,7 @@ impl std::str::FromStr for Index {
     }
 }
 
+/// Returns an iterator that will yield each combination of each element of 'outer' and 'inner'. Has the same order as a nested loop hence the argument names.
 fn cartesian_product<T: Copy, const N: usize>(
     outer: [T; N],
     inner: [T; N],
@@ -262,6 +269,7 @@ fn cartesian_product<T: Copy, const N: usize>(
     })
 }
 
+/// This type represents a possible 3x3 [SubBox] in a Sudoku [Board]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SubBox {
     TopLeft,
@@ -275,6 +283,7 @@ pub enum SubBox {
     BottomRight,
 }
 impl SubBox {
+    /// Returns an iterator that yields each index in this [SubBox]
     pub fn all_indexes(&self) -> impl Iterator<Item = Index> {
         match self {
             SubBox::TopLeft => cartesian_product([0, 1, 2], [0, 1, 2]),
@@ -293,6 +302,7 @@ impl SubBox {
     }
 }
 impl From<Index> for SubBox {
+    /// Defines the conversion [From] [Index] [Into] [SubBox]
     fn from(value: Index) -> Self {
         if value.row <= 2 {
             if value.column <= 2 {
