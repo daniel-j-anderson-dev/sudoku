@@ -1,4 +1,4 @@
-pub const OPTIONS: &str = "Options:\n? Show these instructions\nD Display the board\nE Edit one square\nS Show the possible values for a square\nQ Save and quit\n\n";
+pub const OPTIONS: &str = "Options:\n? Show these instructions\nD Display the board\nE Edit one square\nS Show the possible values for a square\nQ Save and quit\n";
 
 pub enum MenuOption {
     ShowInstructions,
