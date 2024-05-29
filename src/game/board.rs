@@ -5,6 +5,33 @@ pub struct Board {
     values: [[Value; 9]; 9],
 }
 impl Board {
+    pub fn read_from_file(path: impl AsRef<std::path::Path>) -> Result<Self, Box<dyn std::error::Error>> {
+        return Ok(std::fs::read_to_string(path)?.parse()?);
+    }
+
+    pub fn save_to_file(&self, path: impl AsRef<std::path::Path>) -> Result<(), std::io::Error> {
+        let save_data = {
+            let mut temp = String::new();
+            for row in self.values.iter() {
+                for value in row {
+                    temp.push_str(&format!("{} ", value));
+                }
+                temp.push('\n');
+            }
+            temp
+        };
+
+        let mut file = std::fs::File::options()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(path)?;
+        use std::io::Write;
+        writeln!(file, "{}", save_data)?;
+
+        return Ok(());
+    }
+
     pub fn get(&self, index: Index) -> &Value {
         return &self.values[index.row][index.column];
     }
@@ -28,6 +55,8 @@ impl Board {
     }
 
     pub fn possible_values(&self, index: Index) -> impl Iterator<Item = Value> {
+        let is_empty = self.get(index).is_empty();
+
         let mut values_seen = [true; 10];
 
         // check row
@@ -48,24 +77,13 @@ impl Board {
         return values_seen
             .into_iter()
             .enumerate()
-            .filter_map(|(value, value_seen)| {
-                if value_seen && value != 0 {
+            .filter_map(move |(value, value_seen)| {
+                if is_empty && value_seen && value != 0 {
                     Some(value.into())
                 } else {
                     None
                 }
             });
-    }
-
-    pub fn save_data(&self) -> String {
-        let mut output = String::new();
-        for row in self.values.iter() {
-            for value in row {
-                output.push_str(&format!("{} ", value));
-            }
-            output.push('\n');
-        }
-        return output;
     }
 }
 impl std::fmt::Display for Board {

@@ -8,12 +8,9 @@ pub use crate::game::{
     menu::MenuOption,
 };
 
-use std::{
-    fs::File,
-    io::{stdin, stdout, BufRead, Read, Write},
-};
-
 pub fn get_input(prompt: &str) -> Result<String, std::io::Error> {
+    use std::io::{stdin, stdout, BufRead, Write};
+
     let mut stdout = stdout().lock();
     stdout.write_all(prompt.as_bytes())?;
     stdout.flush()?;
@@ -33,26 +30,7 @@ where
     loop {
         match get_input(prompt)?.parse() {
             Ok(parsed_input) => return Ok(parsed_input),
-            Err(parse_error) => eprintln!("\nERROR: {}\n", parse_error),
+            Err(parse_error) => eprintln!("\nERROR: {}", parse_error),
         }
     }
-}
-
-pub fn read_text_file(path: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let mut file = File::options().read(true).open(path)?;
-    let mut file_data = Vec::new();
-    file.read_to_end(&mut file_data)?;
-    let file_text = String::from_utf8(file_data)?;
-    return Ok(file_text);
-}
-
-pub fn save_text_file(path: &str, data: &str) -> Result<(), std::io::Error> {
-    let mut file = File::options()
-        .create(true)
-        .write(true)
-        .truncate(true)
-        .open(path)?;
-    file.write_all(data.as_bytes())?;
-    file.flush()?;
-    return Ok(());
 }
