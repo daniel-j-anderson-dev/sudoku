@@ -2,17 +2,17 @@ mod game;
 use game::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let board_path = get_input("Where is your board located? ")?;
-    let mut board = read_text_file(&board_path)?.parse::<Board>()?;
+    let path = get_input("Where is your board located? ")?;
+    let mut board = Board::read_from_file(path)?;
 
     println!("{}\n{}", menu::OPTIONS, board);
 
     loop {
-        let input = get_parsed_input::<MenuOption>("> ")?;
+        let menu_option = get_parsed_input::<MenuOption>("> ")?;
 
         println!();
 
-        match input {
+        match menu_option {
             MenuOption::ShowInstructions => print!("{}", menu::OPTIONS),
             MenuOption::DisplayBoard => print!("{}", board),
             MenuOption::EditOneSquare => {
@@ -53,10 +53,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!();
             }
             MenuOption::SaveAndQuit => {
-                let save_path = get_input("save prompt")?;
-                let save_data = board.save_data();
-                save_text_file(&save_path, &save_data)?;
-                println!("\nBoard written successfully\n");
+                let path = get_input("What file would you like to write your board to: ")?;
+                board.save_to_file(path)?;
+                println!("\nBoard written successfully");
                 break;
             }
         }
